@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Matches - InternConnect</title>
+    <meta name="description" content="Discover internship opportunities perfectly matched to your profile.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <h2>InternConnect</h2>
+            </div>
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="matches.html" class="nav-link active">Matches</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Matches Section -->
+    <main class="matches-page">
+        <div class="container">
+            <div class="matches-header">
+                <h1>Your Internship Matches</h1>
+                <p>Based on your profile, here are the best internship opportunities for you</p>
+            </div>
+            
+            <div id="matchesContainer" class="matches-grid">
+                <!-- Matches will be populated by JavaScript -->
+            </div>
+
+            <div id="noMatches" class="no-matches" style="display: none;">
+                <h2>No matches found</h2>
+                <p>Complete your profile to see personalized internship matches.</p>
+                <button class="btn-primary" onclick="window.location.href='profile.html'">
+                    Complete Profile
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Template Modal -->
+    <div id="templateModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Application Template</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="templateContent"></div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="copyTemplate()">Copy Template</button>
+                    <button class="btn-primary" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
