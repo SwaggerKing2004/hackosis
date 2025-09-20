@@ -31,11 +31,12 @@
                 </button>
             </div>
             <div class="hero-image">
-                <img src="src/assets/hero-image.jpg" alt="Students collaborating in a modern office environment">
-            </div>
+    <img src="{{ url_for('static', filename='images/hero-image.jpg') }}" alt="Students collaborating in a modern office environment">
+</div>
         </div>
     </main>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
