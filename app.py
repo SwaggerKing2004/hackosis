@@ -11,13 +11,13 @@ ACCEPTED_FIELDNAMES = ["title", "company", "confidence", "reason", "Preferred_Lo
 
 training_stats = {"total_shown": 0, "accepted": 0}
 
-# ---- Matching Logic ----
+
 def compute_score(user, job):
     job_skills = [s.strip().lower() for s in str(job.get("Skills", "")).split(",") if s.strip()]
     job_interests = [i.strip().lower() for i in str(job.get("Interests", "")).split(",") if i.strip()]
     job_loc = str(job.get("location", "")).lower().strip()
 
-    # The user input is now a list, so we don't need to split it
+    
     user_skills = [s.strip().lower() for s in user["skills"]]
     user_interests = [i.strip().lower() for i in user["interests"]]
 

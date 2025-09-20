@@ -6,7 +6,7 @@ let userProfile = {
     interests: []
 };
 
-// Function to handle fetching matches from the backend
+
 async function fetchMatches(profile) {
     try {
         const response = await fetch('/match', {
@@ -22,10 +22,10 @@ async function fetchMatches(profile) {
         }
 
         const matches = await response.json();
-        // Save the matches to sessionStorage to be accessed by the matches.html page
+        
         sessionStorage.setItem('internshipMatches', JSON.stringify(matches));
         
-        // Redirect to the matches page
+        
         window.location.href = '/matches.html';
 
     } catch (error) {
@@ -34,9 +34,9 @@ async function fetchMatches(profile) {
     }
 }
 
-// Function to handle the profile form submission
+
 function handleProfileForm(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault(); 
 
     userProfile.name = document.getElementById('name').value;
     userProfile.email = document.getElementById('email').value;
@@ -48,18 +48,18 @@ function handleProfileForm(event) {
     const interestsTags = document.querySelectorAll('#interestsTags .tag-item');
     userProfile.interests = Array.from(interestsTags).map(tag => tag.dataset.value);
     
-    // Call the function to fetch matches from the backend
+    
     fetchMatches(userProfile);
 }
 
-// Function to initialize the profile form page
+
 function initializeProfileForm() {
     const form = document.getElementById('profileForm');
     if (form) {
         form.addEventListener('submit', handleProfileForm);
     }
     
-    // Tag input logic
+    
     const skillsInput = document.getElementById('skillsInput');
     const skillsTagsContainer = document.getElementById('skillsTags');
     const interestsInput = document.getElementById('interestsInput');
@@ -99,7 +99,7 @@ function initializeProfileForm() {
     }
 }
 
-// Function to display the matches on the matches.html page
+
 function displayMatches(matches) {
     const container = document.getElementById('matchesContainer');
     const noMatchesDiv = document.getElementById('noMatches');
@@ -147,22 +147,22 @@ function displayMatches(matches) {
     });
 }
 
-// Function to initialize the matches page
+
 function initializeMatchesPage() {
     const matchesData = sessionStorage.getItem('internshipMatches');
     if (matchesData) {
         const matches = JSON.parse(matchesData);
         displayMatches(matches);
     } else {
-        // If no matches are found, show the "no matches" message
+       
         document.getElementById('matchesContainer').style.display = 'none';
         document.getElementById('noMatches').style.display = 'block';
     }
 }
 
-// Function to handle accepting a match (sends data back to Flask)
+
 async function acceptMatch(match) {
-    // Add user profile information to the accepted match data
+    
     const profile = JSON.parse(sessionStorage.getItem('userProfile')) || {};
     const dataToSend = {
         title: match.title,
@@ -195,7 +195,7 @@ async function acceptMatch(match) {
     }
 }
 
-// Application template and modal functions
+
 function generateTemplate(title, company) {
     const template = `Dear Hiring Manager at ${company},\n\nI am writing to express my strong interest in the ${title} internship opportunity. My skills and interests align closely with your company's mission.\n\nThank you for your time and consideration.\n\nSincerely,\n${userProfile.name || 'Your Name'}`;
     
@@ -225,11 +225,11 @@ function copyTemplate() {
     });
 }
 
-// Initialize page based on current page
+
 document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
-    // Store user profile data
+    
     if (currentPage === 'profile.html' && document.getElementById('profileForm')) {
         const form = document.getElementById('profileForm');
         form.addEventListener('submit', (e) => {
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
             break;
     }
     
-    // Close modal when clicking outside
+    
     window.onclick = function(event) {
         const modal = document.getElementById('templateModal');
         if (event.target === modal) {
