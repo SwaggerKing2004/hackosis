@@ -6,301 +6,200 @@ let userProfile = {
     interests: []
 };
 
-// Sample internship data
-const internships = [
-    {
-        id: 1,
-        title: "Software Engineering Intern",
-        company: "TechCorp Inc.",
-        location: "San Francisco, CA",
-        skills: ["JavaScript", "React", "Node.js", "Python"],
-        description: "Join our dynamic engineering team to build scalable web applications."
-    },
-    {
-        id: 2,
-        title: "Data Science Intern",
-        company: "DataViz Solutions",
-        location: "New York, NY",
-        skills: ["Python", "Machine Learning", "SQL", "Statistics"],
-        description: "Work with big data to derive meaningful insights for our clients."
-    },
-    {
-        id: 3,
-        title: "UX Design Intern",
-        company: "Creative Studio",
-        location: "Los Angeles, CA",
-        skills: ["Figma", "User Research", "Prototyping", "Design Systems"],
-        description: "Create beautiful and intuitive user experiences for mobile and web."
-    },
-    {
-        id: 4,
-        title: "Marketing Intern",
-        company: "Growth Marketing Co.",
-        location: "Chicago, IL",
-        skills: ["Digital Marketing", "Content Creation", "Analytics", "Social Media"],
-        description: "Drive user acquisition and engagement through innovative marketing campaigns."
-    },
-    {
-        id: 5,
-        title: "Cybersecurity Intern",
-        company: "SecureNet Systems",
-        location: "Boston, MA",
-        skills: ["Network Security", "Penetration Testing", "Risk Assessment", "Compliance"],
-        description: "Protect digital assets and ensure security compliance for enterprise clients."
-    }
-];
+// Function to handle fetching matches from the backend
+async function fetchMatches(profile) {
+    try {
+        const response = await fetch('/match', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(profile)
+        });
 
-// Load profile from localStorage
-function loadProfile() {
-    const saved = localStorage.getItem('userProfile');
-    if (saved) {
-        userProfile = JSON.parse(saved);
-    }
-}
-
-// Save profile to localStorage
-function saveProfile() {
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
-}
-
-// Tags input functionality
-function initializeTagsInput(inputId, tagsId, profileKey) {
-    const input = document.getElementById(inputId);
-    const tagsContainer = document.getElementById(tagsId);
-    
-    if (!input || !tagsContainer) return;
-
-    // Load existing tags
-    renderTags(tagsContainer, userProfile[profileKey], profileKey);
-
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            const value = input.value.trim();
-            if (value && !userProfile[profileKey].includes(value)) {
-                userProfile[profileKey].push(value);
-                renderTags(tagsContainer, userProfile[profileKey], profileKey);
-                input.value = '';
-            }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
+
+        const matches = await response.json();
+        // Save the matches to sessionStorage to be accessed by the matches.html page
+        sessionStorage.setItem('internshipMatches', JSON.stringify(matches));
+        
+        // Redirect to the matches page
+        window.location.href = '/matches.html';
+
+    } catch (error) {
+        console.error('Error fetching matches:', error);
+        alert('Failed to find matches. Please try again.');
+    }
 }
 
-function renderTags(container, tags, profileKey) {
-    container.innerHTML = tags.map(tag => `
-        <span class="tag">
-            ${tag}
-            <button type="button" class="tag-remove" onclick="removeTag('${profileKey}', '${tag}')">×</button>
-        </span>
-    `).join('');
+// Function to handle the profile form submission
+function handleProfileForm(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    userProfile.name = document.getElementById('name').value;
+    userProfile.email = document.getElementById('email').value;
+    userProfile.location = document.getElementById('location').value;
+
+    const skillsTags = document.querySelectorAll('#skillsTags .tag-item');
+    userProfile.skills = Array.from(skillsTags).map(tag => tag.dataset.value);
+
+    const interestsTags = document.querySelectorAll('#interestsTags .tag-item');
+    userProfile.interests = Array.from(interestsTags).map(tag => tag.dataset.value);
+    
+    // Call the function to fetch matches from the backend
+    fetchMatches(userProfile);
 }
 
-function removeTag(profileKey, tagToRemove) {
-    userProfile[profileKey] = userProfile[profileKey].filter(tag => tag !== tagToRemove);
-    const container = document.getElementById(profileKey + 'Tags');
-    renderTags(container, userProfile[profileKey], profileKey);
-}
-
-// Profile form handling
+// Function to initialize the profile form page
 function initializeProfileForm() {
     const form = document.getElementById('profileForm');
-    if (!form) return;
-
-    // Load existing profile data
-    loadProfile();
+    if (form) {
+        form.addEventListener('submit', handleProfileForm);
+    }
     
-    // Populate form fields
-    if (userProfile.name) document.getElementById('name').value = userProfile.name;
-    if (userProfile.email) document.getElementById('email').value = userProfile.email;
-    if (userProfile.location) document.getElementById('location').value = userProfile.location;
+    // Tag input logic
+    const skillsInput = document.getElementById('skillsInput');
+    const skillsTagsContainer = document.getElementById('skillsTags');
+    const interestsInput = document.getElementById('interestsInput');
+    const interestsTagsContainer = document.getElementById('interestsTags');
 
-    // Initialize tags inputs
-    initializeTagsInput('skillsInput', 'skillsTags', 'skills');
-    initializeTagsInput('interestsInput', 'interestsTags', 'interests');
+    function createTag(text, container) {
+        const tag = document.createElement('span');
+        tag.classList.add('tag-item');
+        tag.dataset.value = text;
+        tag.textContent = text;
+        const removeBtn = document.createElement('span');
+        removeBtn.classList.add('remove-tag');
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => tag.remove();
+        tag.appendChild(removeBtn);
+        container.appendChild(tag);
+    }
 
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        userProfile.name = document.getElementById('name').value;
-        userProfile.email = document.getElementById('email').value;
-        userProfile.location = document.getElementById('location').value;
+    if (skillsInput) {
+        skillsInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && skillsInput.value.trim() !== '') {
+                e.preventDefault();
+                createTag(skillsInput.value.trim(), skillsTagsContainer);
+                skillsInput.value = '';
+            }
+        });
+    }
 
-        // Validate required fields
-        if (!userProfile.name || !userProfile.email || !userProfile.location || 
-            userProfile.skills.length === 0 || userProfile.interests.length === 0) {
-            alert('Please fill in all required fields and add at least one skill and interest.');
-            return;
-        }
+    if (interestsInput) {
+        interestsInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && interestsInput.value.trim() !== '') {
+                e.preventDefault();
+                createTag(interestsInput.value.trim(), interestsTagsContainer);
+                interestsInput.value = '';
+            }
+        });
+    }
+}
 
-        // Save profile and redirect
-        saveProfile();
-        window.location.href = 'matches.html';
+// Function to display the matches on the matches.html page
+function displayMatches(matches) {
+    const container = document.getElementById('matchesContainer');
+    const noMatchesDiv = document.getElementById('noMatches');
+
+    if (matches.length === 0) {
+        container.style.display = 'none';
+        noMatchesDiv.style.display = 'block';
+        return;
+    }
+
+    container.style.display = 'grid';
+    noMatchesDiv.style.display = 'none';
+    container.innerHTML = '';
+
+    matches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'match-card';
+        card.innerHTML = `
+            <h3 class="match-title">${match.title}</h3>
+            <p class="match-company">${match.company}</p>
+            <p class="match-location">${match.location}</p>
+            <div class="match-confidence">
+                <div class="confidence-bar" style="width: ${match.confidence.toFixed(2)}%;"></div>
+                <span class="confidence-text">${match.confidence.toFixed(2)}% Match</span>
+            </div>
+            <p class="match-reason">${match.reason}</p>
+            <div class="match-skills">
+                <span class="skill-label">Skills:</span>
+                ${match.Skills.split(',').map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')}
+            </div>
+            <div class="match-interests">
+                <span class="interest-label">Interests:</span>
+                ${match.Interests.split(',').map(i => `<span class="interest-tag">${i.trim()}</span>`).join('')}
+            </div>
+            <div class="match-actions">
+                <button class="btn-secondary" onclick="generateTemplate('${match.title}', '${match.company}')">
+                    Generate Template
+                </button>
+                <button class="btn-primary" onclick="acceptMatch(${JSON.stringify(match).split('"').join("'")})">
+                    Accept
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
     });
 }
 
-// Calculate match score
-function calculateMatchScore(internship, profile) {
-    let score = 0;
-    let reasons = [];
-
-    // Skills matching (40% weight)
-    const skillMatches = internship.skills.filter(skill => 
-        profile.skills.some(userSkill => 
-            userSkill.toLowerCase().includes(skill.toLowerCase()) ||
-            skill.toLowerCase().includes(userSkill.toLowerCase())
-        )
-    );
-    const skillScore = (skillMatches.length / internship.skills.length) * 40;
-    score += skillScore;
-
-    if (skillMatches.length > 0) {
-        reasons.push(`${skillMatches.length} of your skills match: ${skillMatches.slice(0, 2).join(', ')}`);
-    }
-
-    // Location matching (30% weight)
-    if (profile.location === internship.location || profile.location === 'Remote') {
-        score += 30;
-        reasons.push('Location matches your preference');
-    } else if (profile.location && internship.location) {
-        // Partial location match (same state)
-        const userState = profile.location.split(', ')[1];
-        const internState = internship.location.split(', ')[1];
-        if (userState === internState) {
-            score += 15;
-            reasons.push('Same state as your preference');
-        }
-    }
-
-    // Interest alignment (30% weight)
-    const interestKeywords = {
-        'Software Engineering': ['programming', 'coding', 'development', 'software', 'web', 'mobile'],
-        'Data Science': ['data', 'analytics', 'machine learning', 'statistics', 'ai', 'research'],
-        'UX Design': ['design', 'user experience', 'ui', 'ux', 'creative', 'visual'],
-        'Marketing': ['marketing', 'business', 'growth', 'social media', 'content'],
-        'Cybersecurity': ['security', 'cyber', 'networking', 'protection', 'privacy']
-    };
-
-    for (const [field, keywords] of Object.entries(interestKeywords)) {
-        if (internship.title.includes(field.split(' ')[0])) {
-            const matchingInterests = profile.interests.filter(interest =>
-                keywords.some(keyword => interest.toLowerCase().includes(keyword))
-            );
-            if (matchingInterests.length > 0) {
-                score += 30;
-                reasons.push(`Your interests align with ${field.toLowerCase()}`);
-                break;
-            }
-        }
-    }
-
-    return {
-        score: Math.min(Math.round(score), 100),
-        reasons: reasons.slice(0, 2) // Limit to 2 main reasons
-    };
-}
-
-// Generate application template
-function generateApplicationTemplate(internship, profile) {
-    return `Subject: Application for ${internship.title} Position
-
-Dear Hiring Manager,
-
-I am writing to express my strong interest in the ${internship.title} position at ${internship.company}. As a motivated student with relevant skills and interests, I believe I would be a valuable addition to your team.
-
-My Background:
-- Name: ${profile.name}
-- Email: ${profile.email}
-- Location: ${profile.location}
-
-Relevant Skills:
-${profile.skills.slice(0, 5).map(skill => `- ${skill}`).join('\n')}
-
-Areas of Interest:
-${profile.interests.slice(0, 3).map(interest => `- ${interest}`).join('\n')}
-
-I am particularly excited about this opportunity because:
-- Your company's focus on ${internship.description.split(' ').slice(0, 10).join(' ')}...
-- The chance to work with technologies like ${internship.skills.slice(0, 3).join(', ')}
-- The opportunity to contribute to meaningful projects in ${internship.location}
-
-I would welcome the opportunity to discuss how my skills and enthusiasm can contribute to your team. Thank you for considering my application.
-
-Best regards,
-${profile.name}
-${profile.email}`;
-}
-
-// Initialize matches page
+// Function to initialize the matches page
 function initializeMatchesPage() {
-    loadProfile();
-    
-    const matchesContainer = document.getElementById('matchesContainer');
-    const noMatches = document.getElementById('noMatches');
-    
-    if (!matchesContainer) return;
-
-    // Check if profile is complete
-    if (!userProfile.name || !userProfile.skills.length || !userProfile.interests.length) {
-        if (noMatches) noMatches.style.display = 'block';
-        return;
+    const matchesData = sessionStorage.getItem('internshipMatches');
+    if (matchesData) {
+        const matches = JSON.parse(matchesData);
+        displayMatches(matches);
+    } else {
+        // If no matches are found, show the "no matches" message
+        document.getElementById('matchesContainer').style.display = 'none';
+        document.getElementById('noMatches').style.display = 'block';
     }
-
-    // Calculate matches
-    const matches = internships.map(internship => {
-        const matchData = calculateMatchScore(internship, userProfile);
-        return {
-            ...internship,
-            matchScore: matchData.score,
-            matchReasons: matchData.reasons
-        };
-    }).filter(match => match.matchScore > 20) // Only show matches with >20% score
-      .sort((a, b) => b.matchScore - a.matchScore); // Sort by match score
-
-    if (matches.length === 0) {
-        if (noMatches) noMatches.style.display = 'block';
-        return;
-    }
-
-    // Render matches
-    matchesContainer.innerHTML = matches.map(match => `
-        <div class="internship-card">
-            <div class="card-header-info">
-                <div>
-                    <h3>${match.title}</h3>
-                    <div class="company-location">${match.company} • ${match.location}</div>
-                </div>
-                <div class="confidence-score">${match.matchScore}% Match</div>
-            </div>
-            
-            <div class="skills-required">
-                <h4>Skills Required:</h4>
-                <div class="skills-list">
-                    ${match.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
-                </div>
-            </div>
-            
-            <div class="match-reason">
-                <h4>Why you were matched:</h4>
-                <p>${match.matchReasons.join('. ') || 'Good overall fit for your profile.'}</p>
-            </div>
-            
-            <button class="btn-primary" onclick="showApplicationTemplate(${match.id})">
-                Generate Application Template
-            </button>
-        </div>
-    `).join('');
 }
 
-// Modal functions
-function showApplicationTemplate(internshipId) {
-    const internship = internships.find(i => i.id === internshipId);
-    if (!internship) return;
+// Function to handle accepting a match (sends data back to Flask)
+async function acceptMatch(match) {
+    // Add user profile information to the accepted match data
+    const profile = JSON.parse(sessionStorage.getItem('userProfile')) || {};
+    const dataToSend = {
+        title: match.title,
+        company: match.company,
+        confidence: match.confidence,
+        reason: match.reason,
+        Preferred_Location: profile.location || 'N/A',
+        User_Skills: profile.skills ? profile.skills.join(',') : 'N/A',
+        User_Interests: profile.interests ? profile.interests.join(',') : 'N/A'
+    };
+    
+    try {
+        const response = await fetch('/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSend)
+        });
 
-    const template = generateApplicationTemplate(internship, userProfile);
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert('Internship accepted! Your preference has been recorded.');
+        } else {
+            alert('Failed to record acceptance.');
+        }
+    } catch (error) {
+        console.error('Error accepting match:', error);
+        alert('An error occurred. Please try again.');
+    }
+}
+
+// Application template and modal functions
+function generateTemplate(title, company) {
+    const template = `Dear Hiring Manager at ${company},\n\nI am writing to express my strong interest in the ${title} internship opportunity. My skills and interests align closely with your company's mission.\n\nThank you for your time and consideration.\n\nSincerely,\n${userProfile.name || 'Your Name'}`;
     
     document.getElementById('templateContent').innerHTML = `
-        <h3>Application for ${internship.title}</h3>
         <div class="template-content">${template}</div>
     `;
     
@@ -316,7 +215,6 @@ function copyTemplate() {
     navigator.clipboard.writeText(templateText).then(() => {
         alert('Application template copied to clipboard!');
     }).catch(() => {
-        // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = templateText;
         document.body.appendChild(textArea);
@@ -330,6 +228,22 @@ function copyTemplate() {
 // Initialize page based on current page
 document.addEventListener('DOMContentLoaded', function() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    
+    // Store user profile data
+    if (currentPage === 'profile.html' && document.getElementById('profileForm')) {
+        const form = document.getElementById('profileForm');
+        form.addEventListener('submit', (e) => {
+            const profileData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                location: document.getElementById('location').value,
+                skills: Array.from(document.querySelectorAll('#skillsTags .tag-item')).map(tag => tag.dataset.value),
+                interests: Array.from(document.querySelectorAll('#interestsTags .tag-item')).map(tag => tag.dataset.value)
+            };
+            sessionStorage.setItem('userProfile', JSON.stringify(profileData));
+        });
+        initializeProfileForm();
+    }
     
     switch (currentPage) {
         case 'profile.html':
