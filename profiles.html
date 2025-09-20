@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - InternConnect</title>
+    <meta name="description" content="Create your profile to find the perfect internship matches.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <h2>InternConnect</h2>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="nav-link active">Profile</a>
+                <a href="{{ url_for('matches') }}" class="nav-link">Matches</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="profile-page">
+        <div class="container">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h1>Create Your Profile</h1>
+                    <p>Tell us about yourself to find the perfect internship matches</p>
+                </div>
+                
+                <form id="profileForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Preferred Location *</label>
+                        <p class="form-description">Type the city or region where you'd like to work for your internship</p>
+                        <input type="text" id="location" name="location" required placeholder="Enter your preferred location">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="skills">Skills *</label>
+                        <p class="form-description">Add your technical and professional skills</p>
+                        <div class="tags-input-container">
+                            <div class="tags-display" id="skillsTags"></div>
+                            <input type="text" id="skillsInput" placeholder="Type a skill and press Enter">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interests">Interests *</label>
+                        <p class="form-description">What areas are you passionate about?</p>
+                        <div class="tags-input-container">
+                            <div class="tags-display" id="interestsTags"></div>
+                            <input type="text" id="interestsInput" placeholder="Type an interest and press Enter">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Find My Matches</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

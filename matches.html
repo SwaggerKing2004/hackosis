@@ -5,24 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Matches - InternConnect</title>
     <meta name="description" content="Discover internship opportunities perfectly matched to your profile.">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="nav-brand">
                 <h2>InternConnect</h2>
             </div>
             <nav class="nav-links">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="profile.html" class="nav-link">Profile</a>
-                <a href="matches.html" class="nav-link active">Matches</a>
+                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+                <a href="{{ url_for('matches') }}" class="nav-link active">Matches</a>
             </nav>
         </div>
     </header>
 
-    <!-- Matches Section -->
     <main class="matches-page">
         <div class="container">
             <div class="matches-header">
@@ -31,20 +29,18 @@
             </div>
             
             <div id="matchesContainer" class="matches-grid">
-                <!-- Matches will be populated by JavaScript -->
-            </div>
+                </div>
 
             <div id="noMatches" class="no-matches" style="display: none;">
                 <h2>No matches found</h2>
                 <p>Complete your profile to see personalized internship matches.</p>
-                <button class="btn-primary" onclick="window.location.href='profile.html'">
+                <button class="btn-primary" onclick="window.location.href='{{ url_for('profile') }}'">
                     Complete Profile
                 </button>
             </div>
         </div>
     </main>
 
-    <!-- Application Template Modal -->
     <div id="templateModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -61,6 +57,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
