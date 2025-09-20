@@ -1,42 +1,141 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InternConnect - Find Your Perfect Internship Match</title>
-    <meta name="description" content="Connect with top companies looking for talent. Smart matching algorithm finds internships that fit your skills, interests, and career goals.">
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Internship Matcher</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+.container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+h1 { text-align: center; color: #333; }
+label { display: block; margin-top: 10px; }
+input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+button { margin-top: 15px; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+button:hover { background: #0056b3; }
+.result { margin-top: 20px; padding: 10px; border-radius: 8px; background: #eef; }
+.card { padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; background: #fafafa; }
+.acceptBtn, .rejectBtn {
+    padding: 8px 12px;
+    margin-right: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+.acceptBtn { background-color: #28a745; color: white; }
+.rejectBtn { background-color: #dc3545; color: white; }
+#results { margin-top: 20px; }
+</style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="nav-brand">
-                <h2>InternConnect</h2>
-            </div>
-            <nav class="nav-links">
-                <a href="index.html" class="nav-link active">Home</a>
-                <a href="profile.html" class="nav-link">Profile</a>
-                <a href="matches.html" class="nav-link">Matches</a>
-            </nav>
-        </div>
-    </header>
 
-    <!-- Hero Section -->
-    <main class="hero-section">
-        <div class="container hero-content">
-            <div class="hero-text">
-                <h1>Find Your Perfect Internship Match</h1>
-                <p>Connect with top companies looking for talent. Our smart matching algorithm finds internships that fit your skills, interests, and career goals.</p>
-                <button class="btn-primary" onclick="window.location.href='profile.html'">
-                    Find My Internship
-                </button>
-            </div>
-            <div class="hero-image">
-                <img src="src/assets/hero-image.jpg" alt="Students collaborating in a modern office environment">
-            </div>
-        </div>
-    </main>
+<div class="container">
+    <h1>Internship Matcher</h1>
 
-    <script src="script.js"></script>
+    <label for="skills">Skills (comma-separated):</label>
+    <input type="text" id="skills" placeholder="e.g., Python, Data Analysis, SQL">
+    
+    <label for="interests">Interests (comma-separated):</label>
+    <input type="text" id="interests" placeholder="e.g., AI, Machine Learning, Web Development">
+
+    <label for="location">Preferred Location:</label>
+    <input type="text" id="location" placeholder="e.g., Bangalore">
+
+    <label for="trainingMode">Training Mode:</label>
+    <input type="checkbox" id="trainingMode">
+    
+    <button onclick="getSuggestions()">Find Internships</button>
+
+    <div id="results"></div>
+
+    <div id="accuracyDisplay"></div>
+    <button onclick="showAccuracy()">Show Accuracy</button>
+</div>
+
+<script>
+const trainingModeCheckbox = document.getElementById("trainingMode");
+
+async function getSuggestions() {
+    const skills = document.getElementById("skills").value;
+    const interests = document.getElementById("interests").value;
+    const location = document.getElementById("location").value;
+    const resultsDiv = document.getElementById("results");
+    
+    resultsDiv.innerHTML = "Finding matches...";
+
+    const res = await fetch("/match", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ skills, interests, location })
+    });
+    const data = await res.json();
+    
+    if (data.error) {
+        resultsDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+        console.error("Backend Error:", data.error);
+        return;
+    }
+    
+    if(data.length === 0){
+        resultsDiv.innerHTML = "<p>No suitable internships found. Try different skills or interests.</p>";
+    } else {
+        renderResults(data);
+    }
+}
+
+function renderResults(results) {
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
+    const trainingMode = trainingModeCheckbox.checked;
+
+    results.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.style.border = `2px solid hsl(${item.confidence}, 70%, 50%)`;
+
+        let html = "";
+        for (const key in item) {
+            html += `<strong>${key}:</strong> ${item[key]}<br>`;
+        }
+        div.innerHTML = html;
+
+        if(trainingMode){
+            const acceptBtn = document.createElement("button");
+            acceptBtn.innerText = "Accept";
+            acceptBtn.className = "acceptBtn";
+            acceptBtn.onclick = () => acceptInternship(item);
+
+            const rejectBtn = document.createElement("button");
+            rejectBtn.innerText = "Reject";
+            rejectBtn.className = "rejectBtn";
+            rejectBtn.onclick = () => alert("Internship rejected!");
+
+            div.appendChild(acceptBtn);
+            div.appendChild(rejectBtn);
+        }
+
+        resultsDiv.appendChild(div);
+    });
+}
+
+async function acceptInternship(item){
+    item.Preferred_Location = document.getElementById("location").value;
+    item.User_Skills = document.getElementById("skills").value;
+    item.User_Interests = document.getElementById("interests").value;
+
+    await fetch("/accept", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(item)
+    });
+    alert("Internship accepted and saved!");
+}
+
+async function showAccuracy(){
+    const res = await fetch("/accuracy");
+    const data = await res.json();
+    document.getElementById("accuracyDisplay").innerText = 
+    `Accuracy: ${data.accuracy_percent.toFixed(2)}% (${data.accepted} accepted of ${data.total_shown} shown)`;
+}
+</script>
+
 </body>
 </html>
