@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Resume Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Setup & Variables --- */
+        :root {
+            --primary-color: #0056b3;
+            --background-color: #f4f7f6;
+            --form-bg: #ffffff;
+            --text-color: #333;
+            --subtle-text: #555;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        /* --- Main Layout --- */
+        .controls, .preview {
+            background-color: var(--form-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .controls {
+            width: 450px;
+        }
+
+        .preview {
+            width: 800px; /* A4 paper aspect ratio is roughly 1:1.41 */
+            height: 1129px;
+        }
+        
+        #resume-preview {
+             border: 1px solid var(--border-color);
+             padding: 40px;
+             height: 100%;
+             box-sizing: border-box;
+        }
+
+
+        /* --- Form Controls Styling --- */
+        h1, h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .form-section {
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .dynamic-list .entry {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        button.add-btn {
+            background-color: #28a745;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* --- Resume Preview Styling --- */
+        #resume-header {
+            text-align: center;
+            border-bottom: 2px solid var(--text-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #preview-name {
+            font-size: 2.8em;
+            margin: 0;
+            font-weight: 700;
+        }
+        #preview-title {
+            font-size: 1.2em;
+            margin: 5px 0 10px;
+            color: var(--subtle-text);
+        }
+        #preview-contact {
+            font-size: 0.9em;
+            color: var(--subtle-text);
+        }
+
+        .resume-section {
+            margin-bottom: 20px;
+        }
+        .resume-section h3 {
+            font-size: 1.3em;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        
+        #preview-summary {
+            line-height: 1.6;
+        }
+        
+        .exp-entry, .edu-entry {
+            margin-bottom: 15px;
+        }
+        
+        .exp-entry h4, .edu-entry h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .exp-details, .edu-details {
+            display: flex;
+            justify-content: space-between;
+            font-style: italic;
+            color: var(--subtle-text);
+            margin-bottom: 5px;
+        }
+        
+        #preview-skills ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #preview-skills li {
+             display: inline-block;
+             background-color: #e0eafc;
+             color: var(--primary-color);
+             padding: 5px 12px;
+             border-radius: 15px;
+             margin: 0 5px 5px 0;
+             font-size: 0.9em;
+             font-weight: 500;
+        }
+        
+        /* --- Print Styles --- */
+        @media print {
+            body {
+                padding: 0;
+                display: block;
+                background-color: #fff;
+            }
+            .controls {
+                display: none;
+            }
+            .preview {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+                padding: 0;
+            }
+            #resume-preview {
+                border: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h1>Resume Builder</h1>
+
+        <div class="form-section">
+            <h2>Personal Details</h2>
+            <div class="input-group">
+                <input type="text" id="name" placeholder="Full Name" onkeyup="updatePreview()">
+                <input type="text" id="title" placeholder="Professional Title (e.g., Software Engineer)" onkeyup="updatePreview()">
+                <input type="text" id="phone" placeholder="Phone" onkeyup="updatePreview()">
+                <input type="email" id="email" placeholder="Email Address" onkeyup="updatePreview()">
+                <input type="text" id="linkedin" class="full-width" placeholder="LinkedIn Profile URL" onkeyup="updatePreview()">
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Professional Summary</h2>
+            <textarea id="summary" placeholder="Write a brief summary of your career and skills..." onkeyup="updatePreview()"></textarea>
+        </div>
+
+        <div class="form-section">
+            <h2>Work Experience</h2>
+            <div id="experience-list" class="dynamic-list"></div>
+            <button type="button" class="add-btn" onclick="addExperience()">+ Add Experience</button>
+        </div>
+        
+        <div class="form-section">
+            <h2>Education</h2>
+            <div id="education-list" class="dynamic-list"></div>
+            <button type="button" class="add-btn" onclick="addEducation()">+ Add Education</button>
+        </div>
+
+        <div class="form-section">
+            <h2>Skills</h2>
+            <textarea id="skills" placeholder="Enter skills, separated by commas (e.g., Python, Teamwork, SQL)" onkeyup="updatePreview()"></textarea>
+        </div>
+        
+        <button onclick="window.print()">Print / Save as PDF</button>
+
+    </div>
+
+    <div class="preview">
+        <div id="resume-preview">
+            <header id="resume-header">
+                <h1 id="preview-name">Your Name</h1>
+                <p id="preview-title">Professional Title</p>
+                <p id="preview-contact">Phone | Email | LinkedIn</p>
+            </header>
+            
+            <section class="resume-section">
+                <h3>Summary</h3>
+                <p id="preview-summary">Your professional summary will appear here.</p>
+            </section>
+            
+            <section class="resume-section">
+                <h3>Work Experience</h3>
+                <div id="preview-experience"></div>
+            </section>
+            
+            <section class="resume-section">
+                <h3>Education</h3>
+                <div id="preview-education"></div>
+            </section>
+            
+            <section class="resume-section">
+                <h3>Skills</h3>
+                <div id="preview-skills"></div>
+            </section>
+        </div>
+    </div>
+
+<script>
+    // --- DYNAMIC FORM FUNCTIONS ---
+
+    /**
+     * Adds a new set of input fields for a work experience entry.
+     */
+    function addExperience() {
+        const list = document.getElementById('experience-list');
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        entry.innerHTML = `
+            <input type="text" placeholder="Job Title" class="job-title" onkeyup="updatePreview()">
+            <div class="input-group" style="margin-top: 10px;">
+                <input type="text" placeholder="Company" class="company" onkeyup="updatePreview()">
+                <input type="text" placeholder="Location" class="location" onkeyup="updatePreview()">
+                <input type="text" placeholder="Start Date (e.g., Jan 2020)" class="start-date" onkeyup="updatePreview()">
+                <input type="text" placeholder="End Date (e.g., Present)" class="end-date" onkeyup="updatePreview()">
+            </div>
+            <textarea placeholder="Job description and achievements..." class="description" onkeyup="updatePreview()"></textarea>
+        `;
+        list.appendChild(entry);
+    }
+
+    /**
+     * Adds a new set of input fields for an education entry.
+     */
+    function addEducation() {
+        const list = document.getElementById('education-list');
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        entry.innerHTML = `
+            <input type="text" placeholder="Degree / Certificate" class="degree" onkeyup="updatePreview()">
+            <div class="input-group" style="margin-top: 10px;">
+                <input type="text" placeholder="Institution" class="institution" onkeyup="updatePreview()">
+                <input type="text" placeholder="Graduation Year" class="grad-year" onkeyup="updatePreview()">
+            </div>
+        `;
+        list.appendChild(entry);
+    }
+
+    // --- LIVE PREVIEW UPDATE FUNCTION ---
+
+    /**
+     * Reads all form inputs and updates the live preview pane.
+     */
+    function updatePreview() {
+        // Personal Details
+        document.getElementById('preview-name').textContent = document.getElementById('name').value || "Your Name";
+        document.getElementById('preview-title').textContent = document.getElementById('title').value || "Professional Title";
+        
+        const phone = document.getElementById('phone').value;
+        const email = document.getElementById('email').value;
+        const linkedin = document.getElementById('linkedin').value;
+        let contactInfo = [phone, email, linkedin].filter(Boolean).join(' | ');
+        document.getElementById('preview-contact').textContent = contactInfo || "Contact Information";
+
+        // Summary
+        document.getElementById('preview-summary').textContent = document.getElementById('summary').value || "Your professional summary will appear here.";
+
+        // Experience
+        const expPreview = document.getElementById('preview-experience');
+        expPreview.innerHTML = '';
+        const expEntries = document.querySelectorAll('#experience-list .entry');
+        expEntries.forEach(entry => {
+            const jobTitle = entry.querySelector('.job-title').value;
+            const company = entry.querySelector('.company').value;
+            const location = entry.querySelector('.location').value;
+            const startDate = entry.querySelector('.start-date').value;
+            const endDate = entry.querySelector('.end-date').value;
+            const description = entry.querySelector('.description').value.replace(/\n/g, '<br>');
+
+            if (jobTitle) {
+                expPreview.innerHTML += `
+                    <div class="exp-entry">
+                        <h4>${jobTitle}</h4>
+                        <div class="exp-details">
+                            <span>${company} | ${location}</span>
+                            <span>${startDate} - ${endDate}</span>
+                        </div>
+                        <p>${description}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Education
+        const eduPreview = document.getElementById('preview-education');
+        eduPreview.innerHTML = '';
+        const eduEntries = document.querySelectorAll('#education-list .entry');
+        eduEntries.forEach(entry => {
+            const degree = entry.querySelector('.degree').value;
+            const institution = entry.querySelector('.institution').value;
+            const gradYear = entry.querySelector('.grad-year').value;
+
+            if (degree) {
+                eduPreview.innerHTML += `
+                     <div class="edu-entry">
+                        <h4>${degree}</h4>
+                        <div class="edu-details">
+                            <span>${institution}</span>
+                            <span>${gradYear}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // Skills
+        const skillsPreview = document.getElementById('preview-skills');
+        skillsPreview.innerHTML = '';
+        const skillsText = document.getElementById('skills').value;
+        const skillsArray = skillsText.split(',').filter(skill => skill.trim() !== '');
+        skillsArray.forEach(skill => {
+            skillsPreview.innerHTML += `<li>${skill.trim()}</li>`;
+        });
+    }
+
+    // Initialize with one entry for experience and education for user guidance.
+    addExperience();
+    addEducation();
+</script>
+
+</body>
+</html>
